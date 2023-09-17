@@ -25,24 +25,12 @@ export async function createTranscriptionRoute(app: FastifyInstance) {
     })
 
     const videoPath = video.path
-    // console.log("01", videoPath)
     const audioReadStream = createReadStream(videoPath)
-    // console.log("02", audioReadStream)
 
-    // fazer umm tratamento para o caso de não ter o arquivo de audio
 
-    // if (!audioReadStream) {
-    //   throw new Error("Audio file not found")
-    // }
-
-    // Simulando um arquivo como objeto
-const simulatedFile = {
-  // Dados do arquivo simulado
-  name: 'nome_do_arquivo.wav', // Nome do arquivo
-  type: 'audio/wav', // Tipo de mídia (pode variar dependendo do arquivo real)
-  content: Buffer.from('conteúdo_do_arquivo_em_formato_binário'), // Conteúdo do arquivo em formato binário
-};
-
+    if (!audioReadStream) {
+      throw new Error("Audio file not found")
+    }
     const response = await openai.audio.transcriptions.create({
       file: audioReadStream,
       model: 'whisper-1',
@@ -52,18 +40,16 @@ const simulatedFile = {
       prompt,
     })
 
-    // console.log("03", response)
+    const transcription = response.text
 
-    // const transcription = response.text
-
-    // await prisma.video.update({
-    //   where: {
-    //     id: videoId,
-    //   },
-    //   data: {
-    //     transcript: transcription, // Use "transcript" instead of "transcription"
-    //   },
-    // })
+    await prisma.video.update({
+      where: {
+        id: videoId,
+      },
+      data: {
+        transcript: transcription, // Use "transcript" instead of "transcription"
+      },
+    })
 
     return {
       response,
